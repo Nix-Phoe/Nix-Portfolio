@@ -1,538 +1,319 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nix-Phoe | Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nix-Phoe — Nick Mahandry Rasamoely | Portfolio</title>
+  <meta name="description" content="Portfolio de Nick Mahandry Rasamoely (Nix-Phoe), étudiant en informatique à l'Université de Sherbrooke, à la recherche d'un stage en développement logiciel C++ pour l'hiver 2027. Un tutoriel de jeu vidéo en pixel art guidé par Nix, le phénix bleu." />
+  <meta name="theme-color" content="#070a18" />
+  <link rel="icon" type="image/png" href="assets/phoenix.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
 
-  <style>
-    /* ============================================
-       🎨 DESIGN TOKENS — EDIT HERE TO RESTYLE
-    ============================================ */
-    :root {
-      --color-bg:          #0a0a0a;
-      --color-surface:     #111111;
-      --color-border:      #1e1e1e;
-      --color-accent:      #00ffe0;
-      --color-accent-dim:  #00ffe020;
-      --color-text:        #e8e8e8;
-      --color-muted:       #666666;
-      --color-tag-bg:      #0d2a27;
-      --color-tag-text:    #00ffe0;
-      --font-mono:  'Share Tech Mono', monospace;
-      --font-body:  'DM Sans', sans-serif;
-      --section-gap:   8rem;
-      --card-padding:  1.75rem;
-      --grid-gap:      1.25rem;
-      --reveal-duration: 0.6s;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--color-bg);
-      color: var(--color-text);
-      font-family: var(--font-body);
-      font-size: 16px;
-      line-height: 1.7;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,224,0.012) 2px, rgba(0,255,224,0.012) 4px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ============================================
-       LANGUAGE TOGGLE BUTTON
-    ============================================ */
-    .lang-toggle {
-      position: fixed;
-      top: 1.5rem;
-      right: 2rem;
-      z-index: 100;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      background: transparent;
-      border: 1px solid var(--color-border);
-      color: var(--color-muted);
-      padding: 0.4rem 0.9rem;
-      cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, background 0.2s;
-      border-radius: 2px;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .lang-toggle:hover {
-      color: var(--color-accent);
-      border-color: var(--color-accent);
-      background: var(--color-accent-dim);
-    }
-    .lang-toggle .lang-flag {
-      font-size: 1rem;
-    }
-
-    /* ============================================
-       LAYOUT
-    ============================================ */
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 2rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ============================================
-       REVEAL ANIMATIONS
-    ============================================ */
-    .reveal {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity var(--reveal-duration) ease, transform var(--reveal-duration) ease;
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    /* ============================================
-       HERO
-    ============================================ */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 6rem 0 4rem;
-    }
-    .hero__prefix {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      color: var(--color-accent);
-      letter-spacing: 0.15em;
-      margin-bottom: 1rem;
-    }
-    .hero__name {
-      font-family: var(--font-mono);
-      font-size: clamp(3.5rem, 10vw, 8rem);
-      line-height: 1;
-      letter-spacing: -0.02em;
-      color: var(--color-text);
-      position: relative;
-      display: inline-block;
-    }
-    .hero__name::after {
-      content: '';
-      display: block;
-      width: 100%;
-      height: 3px;
-      background: var(--color-accent);
-      margin-top: 0.3rem;
-      transform: scaleX(0);
-      transform-origin: left;
-      animation: underline-reveal 0.7s 1s ease forwards;
-    }
-    @keyframes underline-reveal { to { transform: scaleX(1); } }
-
-    .hero__tagline {
-      font-family: var(--font-mono);
-      font-size: clamp(0.9rem, 2.2vw, 1.15rem);
-      color: var(--color-muted);
-      margin-top: 2rem;
-      min-height: 1.8em;
-      letter-spacing: 0.02em;
-    }
-    .cursor {
-      display: inline-block;
-      width: 0.6ch;
-      height: 1.1em;
-      background: var(--color-accent);
-      vertical-align: text-bottom;
-      animation: blink 0.9s step-end infinite;
-    }
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .hero__role {
-      font-family: var(--font-body);
-      font-weight: 300;
-      font-size: 1rem;
-      color: var(--color-muted);
-      margin-top: 1.5rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-    .hero__role span { color: var(--color-accent); margin: 0 0.4rem; }
-
-    .hero__scroll {
-      margin-top: 4rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--color-muted);
-      text-decoration: none;
-      letter-spacing: 0.1em;
-      transition: color 0.2s;
-    }
-    .hero__scroll:hover { color: var(--color-accent); }
-    .hero__scroll-line {
-      width: 40px;
-      height: 1px;
-      background: var(--color-muted);
-      transition: background 0.2s, width 0.2s;
-    }
-    .hero__scroll:hover .hero__scroll-line { background: var(--color-accent); width: 60px; }
-
-    /* ============================================
-       PROJECTS
-    ============================================ */
-    .projects { padding: var(--section-gap) 0; }
-
-    .section-title {
-      font-family: var(--font-mono);
-      font-size: clamp(1.2rem, 3vw, 1.6rem);
-      color: var(--color-accent);
-      margin-bottom: 3rem;
-      letter-spacing: 0.05em;
-    }
-    .section-title::before { content: '> '; color: var(--color-muted); }
-
-    .projects__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--grid-gap);
-    }
-
-    .card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-      padding: var(--card-padding);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 0; bottom: 0;
-      width: 3px;
-      background: var(--color-accent);
-      transform: scaleY(0);
-      transform-origin: bottom;
-      transition: transform 0.3s ease;
-    }
-    .card:hover { border-color: var(--color-accent); transform: translateY(-4px); box-shadow: 0 12px 40px var(--color-accent-dim); }
-    .card:hover::before { transform: scaleY(1); }
-
-    .card__header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .card__name { font-family: var(--font-mono); font-size: 1.05rem; color: var(--color-text); letter-spacing: 0.02em; }
-    .card__link {
-      flex-shrink: 0;
-      color: var(--color-muted);
-      text-decoration: none;
-      transition: color 0.2s, transform 0.2s;
-    }
-    .card__link:hover { color: var(--color-accent); transform: scale(1.15); }
-    .card__link svg { display: block; width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-    .card__desc { font-size: 0.9rem; color: var(--color-muted); line-height: 1.6; flex: 1; }
-
-    .card__tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; }
-    .tag {
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      background: var(--color-tag-bg);
-      color: var(--color-tag-text);
-      padding: 3px 10px;
-      border-radius: 2px;
-      letter-spacing: 0.05em;
-    }
-
-    /* ============================================
-       FOOTER
-    ============================================ */
-    .footer {
-      padding: 3rem 0;
-      border-top: 1px solid var(--color-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .footer__text { font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-muted); }
-    .footer__text span { color: var(--color-accent); }
-    .footer__link {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--color-muted);
-      text-decoration: none;
-      letter-spacing: 0.08em;
-      border-bottom: 1px solid transparent;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .footer__link:hover { color: var(--color-accent); border-color: var(--color-accent); }
-
-    /* ============================================
-       RESPONSIVE
-    ============================================ */
-    @media (max-width: 600px) {
-      .projects__grid { grid-template-columns: 1fr; }
-      .footer { flex-direction: column; align-items: flex-start; }
-      .lang-toggle { top: 1rem; right: 1rem; }
-    }
-  </style>
+  <script>
+    // Tant que le jeu charge, on masque la version CV (sauf en file:// ou avec #cv,
+    // où elle sert de rendu de secours). Si le jeu ne démarre pas, elle réapparaît.
+    (function () {
+      var d = document.documentElement, file = location.protocol === 'file:';
+      if (!file && !/#cv\b/.test(location.hash)) d.className += ' boot';
+      if (file) d.className += ' file';
+      setTimeout(function () { if (!window.__nixReady) d.classList.remove('boot'); }, 5000);
+    })();
+  </script>
 </head>
 <body>
 
-  <!-- LANGUAGE TOGGLE -->
-  <button class="lang-toggle" id="lang-btn" aria-label="Switch language">
-    <span class="lang-flag" id="lang-flag">🇫🇷</span>
-    <span id="lang-label">FR</span>
-  </button>
+  <!-- ══════════════════════ LE JEU ══════════════════════ -->
+  <div id="game" data-phase="title">
+    <canvas id="stage" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
 
-  <!-- ==================== HERO ==================== -->
-  <section class="hero">
-    <div class="container">
-      <p class="hero__prefix reveal" style="transition-delay: 0.1s;" data-en="// hello, world" data-fr="// bonjour, monde">// hello, world</p>
-      <h1 class="hero__name reveal" style="transition-delay: 0.25s;">Nix-Phoe</h1>
-      <p class="hero__tagline reveal" style="transition-delay: 0.4s;">
-        <span id="typed-text"></span><span class="cursor"></span>
-      </p>
-      <p class="hero__role reveal" style="transition-delay: 0.55s;">
-        <span data-en="Developer" data-fr="Développeur">Developer</span><span>·</span><span data-en="Builder" data-fr="Créateur">Builder</span><span>·</span><span data-en="Creator" data-fr="Bâtisseur">Creator</span>
-      </p>
-      <a href="#projects" class="hero__scroll reveal" style="transition-delay: 0.7s;">
-        <span class="hero__scroll-line"></span>
-        <span data-en="scroll down" data-fr="défiler">scroll down</span>
-      </a>
+    <header id="hud">
+      <nav id="map" aria-label="Carte des zones" data-i18n-label="map"><ol id="map-list"></ol></nav>
+      <div class="hud-btns">
+        <button type="button" class="btn" id="btn-quick" data-act="quick"><span aria-hidden="true">📄</span> <span data-i18n="quick">Mode CV rapide</span></button>
+        <button type="button" class="btn icon" id="btn-sound" data-act="sound" aria-pressed="false" aria-label="Son">🔇</button>
+        <button type="button" class="btn icon" id="btn-menu" data-act="menu" aria-label="Menu" aria-haspopup="dialog">☰</button>
+      </div>
+    </header>
+
+    <p id="banner" aria-live="polite"></p>
+
+    <section id="title" aria-label="Nix-Phoe">
+      <h1 class="logo">NIX-PHOE</h1>
+      <p id="title-sub">Portfolio — le tutoriel</p>
+      <ul id="title-menu"></ul>
+    </section>
+
+    <section id="panel" class="win" aria-labelledby="panel-title" hidden>
+      <header class="win-head">
+        <h2 id="panel-title"></h2>
+        <span id="panel-count"></span>
+      </header>
+      <div class="win-body" id="panel-body"></div>
+      <footer class="win-foot">
+        <button type="button" class="btn" id="panel-prev" data-act="prev"><span aria-hidden="true">◀</span> <span data-i18n="prev">Précédent</span></button>
+        <button type="button" class="btn btn-main" id="panel-next" data-act="next"><span id="panel-next-label">Suivant</span> <span aria-hidden="true">▶</span></button>
+      </footer>
+    </section>
+
+    <div id="dlg" class="dlg" hidden>
+      <div class="dlg-tab"><img src="assets/phoenix.png" width="40" height="40" alt="" /><span>NIX</span></div>
+      <button type="button" class="dlg-skip" data-act="skip"><span aria-hidden="true">⏩</span> <span data-i18n="skip">Passer</span></button>
+      <p class="dlg-text" aria-hidden="true"></p>
+      <p class="dlg-live sr-only" aria-live="polite"></p>
+      <span class="dlg-arrow" aria-hidden="true">▼</span>
     </div>
-  </section>
 
-  <!-- ==================== PROJECTS ==================== -->
-  <section class="projects" id="projects">
-    <div class="container">
+    <div id="toast" role="status" hidden></div>
 
-      <h2 class="section-title reveal" data-en="// PROJECTS" data-fr="// PROJETS">// PROJECTS</h2>
+    <section id="end" hidden>
+      <p class="end-title" data-i18n="theEnd">FIN ?</p>
+      <ul>
+        <li><button type="button" class="tm" id="end-replay" data-act="replay"><span data-i18n="replay">Rejouer le tutoriel</span></button></li>
+        <li><button type="button" class="tm" data-act="back-save"><span data-i18n="backSave">Retour au point de sauvegarde</span></button></li>
+        <li><button type="button" class="tm" data-act="quick"><span data-i18n="quick">Mode CV rapide</span></button></li>
+      </ul>
+    </section>
 
-      <div class="projects__grid">
-
-        <!-- Card 1 -->
-        <article class="card reveal" style="transition-delay: 0.05s;">
-          <div class="card__header">
-            <h3 class="card__name">Le-jeu-du-pendu</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/Le-jeu-du-pendu" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="A game where you race against the clock to guess a hidden word before time runs out."
-             data-fr="Un jeu où tu dois deviner un mot caché avant que le temps ne s'épuise.">
-            A game where you race against the clock to guess a hidden word before time runs out.
-          </p>
-          <div class="card__tags"><span class="tag">game</span><span class="tag">web</span></div>
-        </article>
-
-        <!-- Card 2 -->
-        <article class="card reveal" style="transition-delay: 0.1s;">
-          <div class="card__header">
-            <h3 class="card__name">Don't Be BrainDead</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/Don-t-Be-BrainDead-" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="A cool and fun trivia question game 😈 — test your knowledge and don't get caught slipping."
-             data-fr="Un jeu de culture générale fun et piquant 😈 — prouve que t'as les connaissances.">
-            A cool and fun trivia question game 😈 — test your knowledge and don't get caught slipping.
-          </p>
-          <div class="card__tags"><span class="tag">trivia</span><span class="tag">game</span></div>
-        </article>
-
-        <!-- Card 3 -->
-        <article class="card reveal" style="transition-delay: 0.15s;">
-          <div class="card__header">
-            <h3 class="card__name">PlatypusIMS</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/PlatypusIMS" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="A video game warehouse inventory management system built in C++ with a PostgreSQL backend."
-             data-fr="Un système de gestion d'inventaire d'entrepôt de jeux vidéo développé en C++ avec PostgreSQL.">
-            A video game warehouse inventory management system built in C++ with a PostgreSQL backend.
-          </p>
-          <div class="card__tags"><span class="tag">C++</span><span class="tag">PostgreSQL</span><span class="tag">IMS</span></div>
-        </article>
-
-        <!-- Card 4 -->
-        <article class="card reveal" style="transition-delay: 0.2s;">
-          <div class="card__header">
-            <h3 class="card__name">STUDY-HOMIE</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/STUDY-HOMIE" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="An application that helps students design a personalized, structured study plan tailored to their goals."
-             data-fr="Une application qui aide les étudiants à créer un plan d'étude personnalisé et structuré selon leurs objectifs.">
-            An application that helps students design a personalized, structured study plan tailored to their goals.
-          </p>
-          <div class="card__tags"><span class="tag">productivity</span><span class="tag">education</span></div>
-        </article>
-
-        <!-- Card 5 -->
-        <article class="card reveal" style="transition-delay: 0.25s;">
-          <div class="card__header">
-            <h3 class="card__name">time-sphere</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/time-sphere" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="A Chrome extension that lets you drop bookmarks at precise timestamps inside YouTube videos."
-             data-fr="Une extension Chrome qui te permet de poser des signets à des horodatages précis dans les vidéos YouTube.">
-            A Chrome extension that lets you drop bookmarks at precise timestamps inside YouTube videos.
-          </p>
-          <div class="card__tags"><span class="tag">Chrome ext</span><span class="tag">YouTube</span><span class="tag">JS</span></div>
-        </article>
-
-        <!-- Card 6 -->
-        <article class="card reveal" style="transition-delay: 0.3s;">
-          <div class="card__header">
-            <h3 class="card__name">La-liga-Dashboard</h3>
-            <a class="card__link" href="https://github.com/Nix-Phoe/La-liga-dashboard-" target="_blank" rel="noopener" aria-label="View on GitHub">
-              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
-          </div>
-          <p class="card__desc"
-             data-en="The 2025/2026 La Liga season dashboard — complete data summaries and head-to-head winning odds."
-             data-fr="Le tableau de bord de la saison La Liga 2025/2026 — résumés de données complets et cotes de victoire en tête-à-tête.">
-            The 2025/2026 La Liga season dashboard — complete data summaries and head-to-head winning odds.
-          </p>
-          <div class="card__tags"><span class="tag">dashboard</span><span class="tag">data</span><span class="tag">football</span></div>
-        </article>
-
+    <div id="menu" role="dialog" aria-modal="true" aria-labelledby="menu-title" hidden>
+      <div class="win menu-win">
+        <h2 id="menu-title" data-i18n="menu">MENU</h2>
+        <ul>
+          <li><button type="button" class="tm" data-act="resume"><span data-i18n="resume">Reprendre</span></button></li>
+          <li><button type="button" class="tm" data-act="lang"><span data-i18n="language">Langue</span> : <b id="menu-lang">FRANÇAIS</b></button></li>
+          <li><button type="button" class="tm" data-act="sound"><span data-i18n="sound">Son</span> : <b id="menu-sound">NON</b></button></li>
+          <li><button type="button" class="tm" data-act="music"><span data-i18n="music">Musique</span> : <b id="menu-music">OUI</b></button></li>
+          <li><button type="button" class="tm" data-act="menu-quick"><span data-i18n="quick">Mode CV rapide</span></button></li>
+          <li><button type="button" class="tm" data-act="menu-title"><span data-i18n="toTitle">Écran titre</span></button></li>
+        </ul>
       </div>
     </div>
-  </section>
 
-  <!-- ==================== FOOTER ==================== -->
-  <footer>
-    <div class="container">
-      <div class="footer">
-        <p class="footer__text"
-           data-en="Built by <span>Nix-Phoe</span>"
-           data-fr="Fait par <span>Nix-Phoe</span>">
-          Built by <span>Nix-Phoe</span>
-        </p>
-        <a class="footer__link" href="https://github.com/Nix-Phoe" target="_blank" rel="noopener">
-          github.com/Nix-Phoe ↗
-        </a>
-      </div>
+    <p id="hint" aria-hidden="true"></p>
+  </div>
+
+  <!-- ══════════════════════ MODE CV RAPIDE ══════════════════════
+       Rendu de secours sans JavaScript et contenu lu par les moteurs de recherche.
+       Le bloc entre QUICK:START et QUICK:END est généré depuis js/i18n.js :
+           node tools/build-static.mjs
+       (avec JavaScript, il est de toute façon régénéré au chargement) -->
+  <div id="quick">
+    <div class="q-bar">
+      <button type="button" class="btn btn-main js-only" id="q-play" data-act="play"><span aria-hidden="true">🎮</span> <span data-i18n="play">Jouer le tutoriel</span></button>
+      <button type="button" class="btn js-only" id="q-lang" data-act="lang">EN</button>
     </div>
-  </footer>
+    <p class="file-note">Le mode jeu a besoin d’un petit serveur web (ou de GitHub Pages) : <code>node tools/serve.mjs</code>. Voici la version CV.</p>
+    <noscript><p class="noscript-note">Active JavaScript pour jouer le tutoriel guidé par Nix le phénix. En attendant, voici la version CV.</p></noscript>
+    <main id="quick-content">
+<!-- QUICK:START -->
+    <header class="q-hero">
+      <img class="q-avatar" src="assets/phoenix.png" width="96" height="96" alt="Nix, un phénix bleu en pixel art">
+      <p class="q-pre">// Nix-Phoe</p>
+      <h1>Nick Mahandry Rasamoely</h1>
+      <p class="q-role">Développeur C++ <span aria-hidden="true">·</span> Sherbrooke, QC</p>
+      <p class="q-quest">Stage en développement logiciel C++ — Hiver 2027</p>
+      <p class="q-motto">« J’aime juste développer ce qui me passe par la tête »</p>
+      <p class="q-cta">
+        <a class="btn btn-main" href="https://github.com/Nix-Phoe" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="btn" href="mailto:Nick.Mahandry.Rasamoely@usherbrooke.ca">Courriel</a>
+        <a class="btn" href="cv.pdf">Télécharger le CV</a>
+      </p>
+    </header>
 
-  <!-- ==================== JS ==================== -->
-  <script>
-    /* ---- i18n content ---- */
-    const phrases = {
-      en: '"I just like to develop what\'s on my mind"',
-      fr: '"J\'aime juste développer ce qui me passe par la tête"'
-    };
+    <section id="q-about">
+      <h2>À propos</h2>
+      <p>Étudiant au baccalauréat en informatique (régime coopératif) à l’Université de Sherbrooke, à la recherche d’un stage en développement logiciel C++ pour l’hiver 2027.</p>
+      <dl class="q-langs">
+        <dt>Langues</dt>
+        <dd>Français <span class="stars">★★★★★</span> <span aria-hidden="true">·</span> Anglais <span class="stars">★★★½ (oral) · ★★★★ (écrit)</span> <span aria-hidden="true">·</span> Malgache <span class="stars">langue maternelle</span></dd>
+      </dl>
+    </section>
 
-    let currentLang = 'en';
-    let typingInterval = null;
+    <section id="q-projects">
+      <h2>Projets</h2>
+      <h3 class="star">Projets C++</h3>
+      <div class="cards">
+        <article class="card">
+          <header class="card-head">
+            <h4>Steins Gate Wave Sim</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/Stein-s-Gate-wave-sims-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Simulateur pédagogique de propagation d’ondes radio avec effet Doppler. Un émetteur mobile (trajectoire linéaire ou circulaire) et un récepteur fixe : distance, délai, décalage Doppler, atténuation en espace libre et signal reçu avec bruit gaussien. Le moteur physique (core/) n’a aucune dépendance Qt et est testé avec doctest ; les graphiques sont dessinés à la main avec QPainter.</p>
+          <ul class="tags"><li>C++</li><li>Qt Widgets</li><li>CMake</li><li>doctest</li><li>QPainter</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>PlatypusIMS</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/PlatypusIMS" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Système de gestion d’inventaire pour un entrepôt de jeux vidéo : suivi des produits, ajustement automatique des stocks et détection des niveaux critiques. Architecture orientée objet, transactions, et séparation nette entre la logique métier et l’accès aux données.</p>
+          <ul class="tags"><li>C++</li><li>PostgreSQL</li><li>POO</li><li>Transactions</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>Démineur</h4>
+            <span class="chip">Projet scolaire</span>
+          </header>
+          <p>Démineur à l’architecture orientée objet complète : le plateau, les cellules et l’algorithme de propagation récursive vivent dans des classes distinctes, avec une séparation stricte entre la logique et l’affichage.</p>
+          <ul class="tags"><li>C++</li><li>POO</li><li>Récursivité</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>Bataille navale</h4>
+            <span class="chip">Projet scolaire</span>
+          </header>
+          <p>Simulateur à états : classes de navires, grille et tour de jeu, avec validation des états et des règles de placement à chaque transition.</p>
+          <ul class="tags"><li>C++</li><li>Machine à états</li><li>POO</li></ul>
+        </article>
+      </div>
+      <h3 class="">Python &amp; données</h3>
+      <div class="cards">
+        <article class="card">
+          <header class="card-head">
+            <h4>Quality Data Toolkit</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/Quality-Data-Toolkit-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Simule le travail d’un analyste qualité dans un contexte inspiré de l’aérospatial : les CSV bruts de trois lignes de production sont nettoyés, fusionnés puis analysés — détection d’outliers par z-score, statistiques et graphiques.</p>
+          <ul class="tags"><li>Python</li><li>pandas</li><li>numpy</li><li>matplotlib</li><li>seaborn</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>Incident Tracker</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/Incident-Tracker" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Simule le suivi d’incidents d’une équipe CSIRT : génération de tickets synthétiques réalistes (sévérité pondérée, temps de résolution log-normal), KPI, suivi des SLA dépassés, graphiques et export pour Power BI. Données 100 % synthétiques.</p>
+          <ul class="tags"><li>Python</li><li>pandas</li><li>numpy</li><li>matplotlib</li><li>seaborn</li><li>faker</li><li>Power BI</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>La Liga Dashboard</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/La-liga-dashboard-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Tableau de bord de la saison La Liga 2025/26 : résumés de données et probabilités de victoire en face-à-face.</p>
+          <ul class="tags"><li>React</li><li>Recharts</li><li>JavaScript</li></ul>
+        </article>
+      </div>
+      <h3 class="">Web, outils &amp; jeux</h3>
+      <div class="cards">
+        <article class="card">
+          <header class="card-head">
+            <h4>STUDY-HOMIE</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/STUDY-HOMIE" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Application qui génère un plan d’étude personnalisé selon la matière, le niveau, les objectifs et le temps disponible. Génération via l’API Claude d’Anthropic.</p>
+          <ul class="tags"><li>React</li><li>Vite</li><li>API Claude</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>time-sphere</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/time-sphere" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Extension Chrome (Manifest V3) pour poser des signets à des horodatages précis dans les vidéos YouTube.</p>
+          <ul class="tags"><li>JavaScript</li><li>Chrome Manifest V3</li><li>chrome.storage</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>Don’t Be BrainDead 😈</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/Don-t-Be-BrainDead-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Quiz de culture générale : 3 niveaux (facile, moyen, difficile), 5 questions par niveau, un chrono de 30 s par question et un message final selon le score.</p>
+          <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>JSON</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h4>Le jeu du pendu</h4>
+            <a class="card-link" href="https://github.com/Nix-Phoe/Le-jeu-du-pendu" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+          </header>
+          <p>Jeu du pendu interactif : saisie des lettres au clavier, 10 essais et un bouton Rejouer.</p>
+          <ul class="tags"><li>Python</li><li>Pygame</li></ul>
+        </article>
+      </div>
+    </section>
 
-    /* ---- Typing effect ---- */
-    function startTyping(lang) {
-      const el = document.getElementById('typed-text');
-      const phrase = phrases[lang];
-      el.textContent = '';
-      clearInterval(typingInterval);
-      let i = 0;
-      typingInterval = setInterval(() => {
-        el.textContent = phrase.slice(0, ++i);
-        if (i === phrase.length) clearInterval(typingInterval);
-      }, 38);
-    }
+    <section id="q-skills">
+      <h2>Compétences</h2>
+      <div class="q-skills">
+        <div class="q-branch main">
+          <h3>C++</h3>
+          <ul class="tags"><li>Programmation orientée objet</li><li>Conception de classes</li><li>Architecture modulaire</li><li>Séparation logique / affichage</li><li>Gestion mémoire</li><li>Interfaces interactives</li></ul>
+        </div>
+        <div class="q-branch">
+          <h3>Génie logiciel</h3>
+          <ul class="tags"><li>Conception OO</li><li>Architecture testable</li><li>Tests &amp; validation</li><li>Revue de code</li><li>Versionnement</li></ul>
+        </div>
+        <div class="q-branch">
+          <h3>Simulation &amp; calcul</h3>
+          <ul class="tags"><li>Modélisation d’états et de règles</li><li>Calcul numérique</li><li>Statistiques</li><li>Détection d’anomalies</li><li>Visualisation de données</li></ul>
+        </div>
+        <div class="q-branch">
+          <h3>Autres langages</h3>
+          <ul class="tags"><li>Python</li><li>Java</li><li>JavaScript</li><li>SQL</li><li>HTML5</li><li>CSS</li><li>React</li></ul>
+        </div>
+        <div class="q-branch">
+          <h3>Outils</h3>
+          <ul class="tags"><li>UNIX/Linux</li><li>Windows</li><li>PostgreSQL</li><li>Docker</li><li>Git</li><li>GitHub</li><li>GitLab</li><li>Visual Studio</li><li>CLion</li><li>VS Code</li><li>AWS</li></ul>
+        </div>
+      </div>
+    </section>
 
-    /* ---- Switch language ---- */
-    function switchLang(lang) {
-      currentLang = lang;
-      document.documentElement.lang = lang;
+    <section id="q-certs">
+      <h2>Certifications</h2>
+      <div class="cards">
+        <article class="card">
+          <header class="card-head"><h4>AWS Certified Cloud Practitioner</h4><span class="chip">Juillet 2026</span></header>
+          <p>Amazon Web Services</p>
+          <ul class="tags"><li>Infonuagique</li><li>Services principaux</li><li>Sécurité</li><li>Architecture</li></ul>
+        </article>
+        <article class="card">
+          <header class="card-head"><h4>Qiskit Global Summer School 2026</h4><span class="chip">Juillet 2026</span></header>
+          <p>IBM Quantum</p>
+          <ul class="tags"><li>Algorithmes quantiques</li><li>Circuits</li><li>Simulation numérique</li><li>Python</li></ul>
+        </article>
+      </div>
+    </section>
 
-      // Update all data-en / data-fr elements
-      document.querySelectorAll('[data-en]').forEach(el => {
-        const val = el.dataset[lang];
-        if (val !== undefined) {
-          // Use innerHTML for elements that contain spans (footer text)
-          if (el.tagName === 'P' && el.dataset.fr && el.dataset.fr.includes('<span>')) {
-            el.innerHTML = val;
-          } else {
-            el.textContent = val;
-          }
-        }
-      });
+    <section id="q-xp">
+      <h2>Expérience</h2>
+      <article class="entry">
+        <h3>Opérateur de production — MANN+HUMMEL</h3>
+        <p class="meta">Trois-Rivières, QC <span aria-hidden="true">·</span> Mai – août 2025</p>
+        <ul><li>Assemblage selon les spécifications client</li><li>Inspection qualité</li><li>Préparation des expéditions</li></ul>
+        <p class="perk">Rigueur et souci du détail — les mêmes réflexes que pour les tests et la qualité logicielle.</p>
+      </article>
+    </section>
 
-      // Restart typing effect
-      startTyping(lang);
+    <section id="q-edu">
+      <h2>Formation</h2>
+      <article class="entry">
+        <h3>Baccalauréat en informatique (régime coopératif)</h3>
+        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> Août 2025 – Déc. 2028</p>
+        <p>Excellent rendement scolaire.</p>
+      </article>
+      <article class="entry">
+        <h3>Certificat préparatoire en génie, sciences et santé</h3>
+        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> Août 2024 – Avril 2025</p>
+        <p>Mathématiques et physique.</p>
+      </article>
+    </section>
 
-      // Update button
-      const flag = document.getElementById('lang-flag');
-      const label = document.getElementById('lang-label');
-      if (lang === 'en') {
-        flag.textContent = '🇫🇷';
-        label.textContent = 'FR';
-      } else {
-        flag.textContent = '🇬🇧';
-        label.textContent = 'EN';
-      }
-    }
+    <section id="q-contact">
+      <h2>Contact</h2>
+      <ul class="q-contact">
+        <li><a href="https://github.com/Nix-Phoe" target="_blank" rel="noopener">github.com/Nix-Phoe <span aria-hidden="true">↗</span></a></li>
+        <li><a href="mailto:Nick.Mahandry.Rasamoely@usherbrooke.ca">Nick.Mahandry.Rasamoely@usherbrooke.ca</a></li>
+        <li><a href="cv.pdf">Télécharger le CV</a></li>
+      </ul>
+    </section>
 
-    /* ---- Toggle on click ---- */
-    document.getElementById('lang-btn').addEventListener('click', () => {
-      switchLang(currentLang === 'en' ? 'fr' : 'en');
-    });
+    <footer class="q-foot"><p>Fait par <span>Nix-Phoe</span></p></footer>
+<!-- QUICK:END -->
+    </main>
+  </div>
 
-    /* ---- Scroll-triggered reveals ---- */
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.hero .reveal').forEach(el => {
-      setTimeout(() => el.classList.add('visible'), parseFloat(el.style.transitionDelay || '0') * 1000 + 50);
-    });
-    document.querySelectorAll('.projects .reveal').forEach(el => observer.observe(el));
-
-    /* ---- Initial typing ---- */
-    setTimeout(() => startTyping('en'), 900);
-  </script>
-
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
