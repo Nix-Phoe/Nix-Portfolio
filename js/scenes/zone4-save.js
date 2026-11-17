@@ -1,4 +1,4 @@
-// Zone 9 — « Point de sauvegarde » : feu de camp bleu, même ciel que l'écran titre.
+// Zone 4 — « Point de sauvegarde » : feu de camp bleu, même ciel que l'écran titre.
 import { R, ridge, layer, glow, hash, motes, fire, disc } from './kit.js';
 import { nightSky } from './zone0-title.js';
 

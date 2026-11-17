@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Nix-Phoe — Nick Mahandry Rasamoely | Portfolio</title>
-  <meta name="description" content="Portfolio de Nick Mahandry Rasamoely (Nix-Phoe), étudiant en informatique à l'Université de Sherbrooke, à la recherche d'un stage en développement logiciel C++ pour l'hiver 2027. Un tutoriel de jeu vidéo en pixel art guidé par Nix, le phénix bleu." />
+  <meta name="description" content="Portfolio de Nick Mahandry Rasamoely (Nix-Phoe), étudiant en informatique à l'Université de Sherbrooke, à la recherche d'un stage en développement logiciel C++ pour l'hiver 2027. Un tutoriel de jeu vidéo en pixel art piloté au scroll, guidé par Nix, le phénix bleu." />
   <meta name="theme-color" content="#070a18" />
   <link rel="icon" type="image/png" href="assets/phoenix.png" />
 
@@ -14,91 +14,64 @@
   <link rel="stylesheet" href="css/style.css" />
 
   <script>
-    // Tant que le jeu charge, on masque la version CV (sauf en file:// ou avec #cv,
+    // Tant que le jeu charge, on masque la vue rapide (sauf en file:// ou avec #cv,
     // où elle sert de rendu de secours). Si le jeu ne démarre pas, elle réapparaît.
     (function () {
       var d = document.documentElement, file = location.protocol === 'file:';
       if (!file && !/#cv\b/.test(location.hash)) d.className += ' boot';
       if (file) d.className += ' file';
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       setTimeout(function () { if (!window.__nixReady) d.classList.remove('boot'); }, 5000);
     })();
   </script>
 </head>
 <body>
 
-  <!-- ══════════════════════ LE JEU ══════════════════════ -->
-  <div id="game" data-phase="title">
-    <canvas id="stage" aria-hidden="true"></canvas>
-    <div class="vignette" aria-hidden="true"></div>
+  <!-- ══════════════════════ LE JEU (piloté au scroll) ══════════════════════
+       Chaque zone est une <section> haute qui contient une scène épinglée
+       (position: sticky). Le décor est dessiné sur un seul canvas fixe, derrière.
+       Les panneaux sont générés par js/panels.js à partir de js/content.js. -->
+  <div id="game">
+    <div id="stage-box" aria-hidden="true">
+      <canvas id="stage"></canvas>
+      <div class="vignette"></div>
+    </div>
 
     <header id="hud">
-      <nav id="map" aria-label="Carte des zones" data-i18n-label="map"><ol id="map-list"></ol></nav>
+      <nav id="map" aria-label="Carte du monde" data-i18n-label="map">
+        <ol id="map-list"></ol>
+        <i id="map-pin" aria-hidden="true"></i>
+      </nav>
       <div class="hud-btns">
-        <button type="button" class="btn" id="btn-quick" data-act="quick"><span aria-hidden="true">📄</span> <span data-i18n="quick">Mode CV rapide</span></button>
+        <button type="button" class="btn" id="btn-quick" data-act="quick"><span aria-hidden="true">📄</span> <span data-i18n="quick">Vue rapide</span></button>
+        <button type="button" class="btn" id="btn-lang" data-act="lang" aria-label="Switch to English">EN</button>
         <button type="button" class="btn icon" id="btn-sound" data-act="sound" aria-pressed="false" aria-label="Son">🔇</button>
-        <button type="button" class="btn icon" id="btn-menu" data-act="menu" aria-label="Menu" aria-haspopup="dialog">☰</button>
       </div>
     </header>
 
-    <p id="banner" aria-live="polite"></p>
+    <nav id="tabs" aria-label="Quartiers du Monde des Projets" data-i18n-label="districts"><ul id="tab-list"></ul></nav>
+    <p id="banner" aria-hidden="true"></p>
 
-    <section id="title" aria-label="Nix-Phoe">
-      <h1 class="logo">NIX-PHOE</h1>
-      <p id="title-sub">Portfolio — le tutoriel</p>
-      <ul id="title-menu"></ul>
-    </section>
+    <main id="track">
+      <section class="zone" id="z-title" data-zone="title"><div class="scene"></div></section>
+      <section class="zone" id="z-nest" data-zone="nest"><div class="scene"></div></section>
+      <section class="zone" id="z-world" data-zone="world"><div class="scene"></div></section>
+      <section class="zone" id="z-summit" data-zone="summit"><div class="scene"></div></section>
+      <section class="zone" id="z-save" data-zone="save"><div class="scene"></div></section>
+    </main>
 
-    <section id="panel" class="win" aria-labelledby="panel-title" hidden>
-      <header class="win-head">
-        <h2 id="panel-title"></h2>
-        <span id="panel-count"></span>
-      </header>
-      <div class="win-body" id="panel-body"></div>
-      <footer class="win-foot">
-        <button type="button" class="btn" id="panel-prev" data-act="prev"><span aria-hidden="true">◀</span> <span data-i18n="prev">Précédent</span></button>
-        <button type="button" class="btn btn-main" id="panel-next" data-act="next"><span id="panel-next-label">Suivant</span> <span aria-hidden="true">▶</span></button>
-      </footer>
-    </section>
-
-    <div id="dlg" class="dlg" hidden>
+    <div id="dlg" class="dlg">
       <div class="dlg-tab"><img src="assets/phoenix.png" width="40" height="40" alt="" /><span>NIX</span></div>
-      <button type="button" class="dlg-skip" data-act="skip"><span aria-hidden="true">⏩</span> <span data-i18n="skip">Passer</span></button>
       <p class="dlg-text" aria-hidden="true"></p>
       <p class="dlg-live sr-only" aria-live="polite"></p>
       <span class="dlg-arrow" aria-hidden="true">▼</span>
     </div>
-
-    <div id="toast" role="status" hidden></div>
-
-    <section id="end" hidden>
-      <p class="end-title" data-i18n="theEnd">FIN ?</p>
-      <ul>
-        <li><button type="button" class="tm" id="end-replay" data-act="replay"><span data-i18n="replay">Rejouer le tutoriel</span></button></li>
-        <li><button type="button" class="tm" data-act="back-save"><span data-i18n="backSave">Retour au point de sauvegarde</span></button></li>
-        <li><button type="button" class="tm" data-act="quick"><span data-i18n="quick">Mode CV rapide</span></button></li>
-      </ul>
-    </section>
-
-    <div id="menu" role="dialog" aria-modal="true" aria-labelledby="menu-title" hidden>
-      <div class="win menu-win">
-        <h2 id="menu-title" data-i18n="menu">MENU</h2>
-        <ul>
-          <li><button type="button" class="tm" data-act="resume"><span data-i18n="resume">Reprendre</span></button></li>
-          <li><button type="button" class="tm" data-act="lang"><span data-i18n="language">Langue</span> : <b id="menu-lang">FRANÇAIS</b></button></li>
-          <li><button type="button" class="tm" data-act="sound"><span data-i18n="sound">Son</span> : <b id="menu-sound">NON</b></button></li>
-          <li><button type="button" class="tm" data-act="music"><span data-i18n="music">Musique</span> : <b id="menu-music">OUI</b></button></li>
-          <li><button type="button" class="tm" data-act="menu-quick"><span data-i18n="quick">Mode CV rapide</span></button></li>
-          <li><button type="button" class="tm" data-act="menu-title"><span data-i18n="toTitle">Écran titre</span></button></li>
-        </ul>
-      </div>
-    </div>
-
-    <p id="hint" aria-hidden="true"></p>
   </div>
 
-  <!-- ══════════════════════ MODE CV RAPIDE ══════════════════════
-       Rendu de secours sans JavaScript et contenu lu par les moteurs de recherche.
-       Le bloc entre QUICK:START et QUICK:END est généré depuis js/i18n.js :
+  <!-- ══════════════════════ VUE RAPIDE ══════════════════════
+       Version classique, sans dialogue ni animation. C'est aussi le rendu de secours
+       sans JavaScript et le HTML sémantique lu par les moteurs de recherche.
+       Le bloc entre QUICK:START et QUICK:END est généré depuis js/content.js :
            node tools/build-static.mjs
        (avec JavaScript, il est de toute façon régénéré au chargement) -->
   <div id="quick">
@@ -106,8 +79,8 @@
       <button type="button" class="btn btn-main js-only" id="q-play" data-act="play"><span aria-hidden="true">🎮</span> <span data-i18n="play">Jouer le tutoriel</span></button>
       <button type="button" class="btn js-only" id="q-lang" data-act="lang">EN</button>
     </div>
-    <p class="file-note">Le mode jeu a besoin d’un petit serveur web (ou de GitHub Pages) : <code>node tools/serve.mjs</code>. Voici la version CV.</p>
-    <noscript><p class="noscript-note">Active JavaScript pour jouer le tutoriel guidé par Nix le phénix. En attendant, voici la version CV.</p></noscript>
+    <p class="file-note">Le mode jeu a besoin d’un petit serveur web (ou de GitHub Pages) : <code>node tools/serve.mjs</code>. Voici la vue rapide.</p>
+    <noscript><p class="noscript-note">Active JavaScript pour jouer le tutoriel guidé par Nix le phénix. En attendant, voici la vue rapide.</p></noscript>
     <main id="quick-content">
 <!-- QUICK:START -->
     <header class="q-hero">
@@ -129,106 +102,124 @@
       <p>Étudiant au baccalauréat en informatique (régime coopératif) à l’Université de Sherbrooke, à la recherche d’un stage en développement logiciel C++ pour l’hiver 2027.</p>
       <dl class="q-langs">
         <dt>Langues</dt>
-        <dd>Français <span class="stars">★★★★★</span> <span aria-hidden="true">·</span> Anglais <span class="stars">★★★½ (oral) · ★★★★ (écrit)</span> <span aria-hidden="true">·</span> Malgache <span class="stars">langue maternelle</span></dd>
+        <dd>Français <span class="stars">★★★★★</span> <span aria-hidden="true">·</span> Anglais <span class="stars">★★★½ à l’oral · ★★★★ à l’écrit</span> <span aria-hidden="true">·</span> Malgache <span class="stars">langue maternelle</span></dd>
       </dl>
     </section>
 
+
+    <section id="q-featured">
+      <h2>Projet phare</h2>
+      <article class="card card-star">
+        <header class="card-head">
+          <h3>StickFlow <small>v2.2.0</small></h3>
+          <span class="card-links"><a class="card-link" href="https://stickflow.stickflow.workers.dev" target="_blank" rel="noopener">ESSAYER <span aria-hidden="true">↗</span></a><a class="card-link" href="https://github.com/Nix-Phoe/StickFlow" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
+        </header>
+        <p>Application d’animation de stickman par pivots, assistée par IA. Le principe : « l’IA assiste, l’utilisateur décide ».</p>
+        <div class="star-cols">
+          <div>
+            <h4>Fonctions IA</h4>
+            <ul><li><strong>Fluidité</strong> : génère les images intermédiaires entre les images clés (linéaire, spline Catmull-Rom, ease-in-out).</li><li><strong>Répétition</strong> : boucle fluide de la dernière image vers la première.</li></ul>
+            <p class="meta">Les images générées sont distinguées dans la timeline ; l’effet est non destructif.</p>
+          </div>
+          <div>
+            <h4>Éditeur complet</h4>
+            <ul><li>Timeline, pelure d’oignon, annuler / rétablir</li><li>Plusieurs personnages, coloration partielle</li><li>Calques de formes et de dessin, arrière-plans personnalisés</li><li>Formats 16:9, 9:16, 1:1, 4:5 · export GIF / PNG / MP4</li></ul>
+          </div>
+        </div>
+        <h4>Technique</h4>
+        <p>TypeScript et Vite, rendu WebGL 2, PWA installable et hors ligne, déployée sur Cloudflare Workers. Tests Vitest, intégration continue GitHub Actions, décisions d’architecture documentées (ADR).</p>
+        <ul class="tags"><li>TypeScript</li><li>Vite</li><li>WebGL 2</li><li>PWA</li><li>Cloudflare Workers</li><li>Vitest</li><li>GitHub Actions</li><li>ADR</li></ul>
+      </article>
+    </section>
+
     <section id="q-projects">
-      <h2>Projets</h2>
-      <h3 class="star">Projets C++</h3>
+      <h2>Autres projets</h2>
+      <h3>Les Terres du C++</h3>
       <div class="cards">
         <article class="card">
           <header class="card-head">
             <h4>Steins Gate Wave Sim</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/Stein-s-Gate-wave-sims-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/Stein-s-Gate-wave-sims-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Simulateur pédagogique de propagation d’ondes radio avec effet Doppler. Un émetteur mobile (trajectoire linéaire ou circulaire) et un récepteur fixe : distance, délai, décalage Doppler, atténuation en espace libre et signal reçu avec bruit gaussien. Le moteur physique (core/) n’a aucune dépendance Qt et est testé avec doctest ; les graphiques sont dessinés à la main avec QPainter.</p>
+          <p>Simulateur pédagogique de propagation d’ondes radio avec effet Doppler, en C++ / Qt Widgets / CMake. Le moteur physique n’a aucune dépendance Qt et est testé avec doctest ; les graphiques sont dessinés avec QPainter.</p>
           <ul class="tags"><li>C++</li><li>Qt Widgets</li><li>CMake</li><li>doctest</li><li>QPainter</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>PlatypusIMS</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/PlatypusIMS" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/PlatypusIMS" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Système de gestion d’inventaire pour un entrepôt de jeux vidéo : suivi des produits, ajustement automatique des stocks et détection des niveaux critiques. Architecture orientée objet, transactions, et séparation nette entre la logique métier et l’accès aux données.</p>
+          <p>Gestion d’inventaire d’un entrepôt de jeux vidéo en C++ + PostgreSQL : ajustement automatique des stocks, détection des niveaux critiques, transactions, logique métier séparée de l’accès aux données.</p>
           <ul class="tags"><li>C++</li><li>PostgreSQL</li><li>POO</li><li>Transactions</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
-            <h4>Démineur</h4>
-            <span class="chip">Projet scolaire</span>
+            <h4>Projets d’école</h4>
+            <span class="card-links"><span class="chip">Projets scolaires</span></span>
           </header>
-          <p>Démineur à l’architecture orientée objet complète : le plateau, les cellules et l’algorithme de propagation récursive vivent dans des classes distinctes, avec une séparation stricte entre la logique et l’affichage.</p>
-          <ul class="tags"><li>C++</li><li>POO</li><li>Récursivité</li></ul>
-        </article>
-        <article class="card">
-          <header class="card-head">
-            <h4>Bataille navale</h4>
-            <span class="chip">Projet scolaire</span>
-          </header>
-          <p>Simulateur à états : classes de navires, grille et tour de jeu, avec validation des états et des règles de placement à chaque transition.</p>
-          <ul class="tags"><li>C++</li><li>Machine à états</li><li>POO</li></ul>
+          <p>Démineur et Bataille navale : architecture orientée objet, propagation récursive, simulateur à états avec validation des règles à chaque transition.</p>
+          <ul class="tags"><li>C++</li><li>POO</li><li>Récursivité</li><li>Machine à états</li></ul>
         </article>
       </div>
-      <h3 class="">Python &amp; données</h3>
+      <h3>Le Laboratoire</h3>
       <div class="cards">
         <article class="card">
           <header class="card-head">
             <h4>Quality Data Toolkit</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/Quality-Data-Toolkit-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/Quality-Data-Toolkit-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Simule le travail d’un analyste qualité dans un contexte inspiré de l’aérospatial : les CSV bruts de trois lignes de production sont nettoyés, fusionnés puis analysés — détection d’outliers par z-score, statistiques et graphiques.</p>
+          <p>Simule un analyste qualité (contexte aérospatial) : nettoyage et fusion des CSV de 3 lignes de production, détection d’anomalies par z-score, graphiques.</p>
           <ul class="tags"><li>Python</li><li>pandas</li><li>numpy</li><li>matplotlib</li><li>seaborn</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>Incident Tracker</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/Incident-Tracker" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/Incident-Tracker" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Simule le suivi d’incidents d’une équipe CSIRT : génération de tickets synthétiques réalistes (sévérité pondérée, temps de résolution log-normal), KPI, suivi des SLA dépassés, graphiques et export pour Power BI. Données 100 % synthétiques.</p>
-          <ul class="tags"><li>Python</li><li>pandas</li><li>numpy</li><li>matplotlib</li><li>seaborn</li><li>faker</li><li>Power BI</li></ul>
+          <p>Suivi d’incidents d’une équipe CSIRT : tickets synthétiques réalistes, KPI, SLA dépassés, export Power BI.</p>
+          <ul class="tags"><li>Python</li><li>pandas</li><li>KPI</li><li>SLA</li><li>Power BI</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>La Liga Dashboard</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/La-liga-dashboard-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/La-liga-dashboard-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Tableau de bord de la saison La Liga 2025/26 : résumés de données et probabilités de victoire en face-à-face.</p>
+          <p>Saison 2025/26 : résumés de données et probabilités de victoire en face-à-face.</p>
           <ul class="tags"><li>React</li><li>Recharts</li><li>JavaScript</li></ul>
         </article>
       </div>
-      <h3 class="">Web, outils &amp; jeux</h3>
+      <h3>L’Arcade</h3>
       <div class="cards">
         <article class="card">
           <header class="card-head">
             <h4>STUDY-HOMIE</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/STUDY-HOMIE" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/STUDY-HOMIE" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Application qui génère un plan d’étude personnalisé selon la matière, le niveau, les objectifs et le temps disponible. Génération via l’API Claude d’Anthropic.</p>
+          <p>Plan d’étude personnalisé généré avec l’API Claude.</p>
           <ul class="tags"><li>React</li><li>Vite</li><li>API Claude</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>time-sphere</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/time-sphere" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/time-sphere" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Extension Chrome (Manifest V3) pour poser des signets à des horodatages précis dans les vidéos YouTube.</p>
-          <ul class="tags"><li>JavaScript</li><li>Chrome Manifest V3</li><li>chrome.storage</li></ul>
+          <p>Extension Chrome (Manifest V3) : des signets à des moments précis des vidéos YouTube.</p>
+          <ul class="tags"><li>JavaScript</li><li>Chrome Manifest V3</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>Don’t Be BrainDead 😈</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/Don-t-Be-BrainDead-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/Don-t-Be-BrainDead-" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Quiz de culture générale : 3 niveaux (facile, moyen, difficile), 5 questions par niveau, un chrono de 30 s par question et un message final selon le score.</p>
-          <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>JSON</li></ul>
+          <p>Quiz à 3 niveaux, chrono de 30 s par question.</p>
+          <ul class="tags"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
         </article>
         <article class="card">
           <header class="card-head">
             <h4>Le jeu du pendu</h4>
-            <a class="card-link" href="https://github.com/Nix-Phoe/Le-jeu-du-pendu" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+            <span class="card-links"><a class="card-link" href="https://github.com/Nix-Phoe/Le-jeu-du-pendu" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></span>
           </header>
-          <p>Jeu du pendu interactif : saisie des lettres au clavier, 10 essais et un bouton Rejouer.</p>
+          <p>Jeu du pendu : 10 essais, bouton Rejouer.</p>
           <ul class="tags"><li>Python</li><li>Pygame</li></ul>
         </article>
       </div>
@@ -239,23 +230,23 @@
       <div class="q-skills">
         <div class="q-branch main">
           <h3>C++</h3>
-          <ul class="tags"><li>Programmation orientée objet</li><li>Conception de classes</li><li>Architecture modulaire</li><li>Séparation logique / affichage</li><li>Gestion mémoire</li><li>Interfaces interactives</li></ul>
+          <ul class="tags"><li>POO</li><li>Architecture modulaire</li><li>Séparation logique / affichage</li><li>Gestion mémoire</li></ul>
         </div>
         <div class="q-branch">
           <h3>Génie logiciel</h3>
-          <ul class="tags"><li>Conception OO</li><li>Architecture testable</li><li>Tests &amp; validation</li><li>Revue de code</li><li>Versionnement</li></ul>
+          <ul class="tags"><li>Tests</li><li>Revue de code</li><li>Versionnement</li></ul>
         </div>
         <div class="q-branch">
-          <h3>Simulation &amp; calcul</h3>
-          <ul class="tags"><li>Modélisation d’états et de règles</li><li>Calcul numérique</li><li>Statistiques</li><li>Détection d’anomalies</li><li>Visualisation de données</li></ul>
+          <h3>Simulation &amp; données</h3>
+          <ul class="tags"><li>Modélisation d’états et de règles</li><li>Calcul numérique</li><li>Statistiques</li><li>Visualisation</li></ul>
         </div>
         <div class="q-branch">
           <h3>Autres langages</h3>
-          <ul class="tags"><li>Python</li><li>Java</li><li>JavaScript</li><li>SQL</li><li>HTML5</li><li>CSS</li><li>React</li></ul>
+          <ul class="tags"><li>Python</li><li>Java</li><li>JavaScript</li><li>TypeScript</li><li>SQL</li><li>HTML/CSS</li><li>React</li></ul>
         </div>
         <div class="q-branch">
           <h3>Outils</h3>
-          <ul class="tags"><li>UNIX/Linux</li><li>Windows</li><li>PostgreSQL</li><li>Docker</li><li>Git</li><li>GitHub</li><li>GitLab</li><li>Visual Studio</li><li>CLion</li><li>VS Code</li><li>AWS</li></ul>
+          <ul class="tags"><li>Linux</li><li>PostgreSQL</li><li>Docker</li><li>Git / GitHub / GitLab</li><li>CLion</li><li>Visual Studio</li><li>AWS</li></ul>
         </div>
       </div>
     </section>
@@ -266,12 +257,12 @@
         <article class="card">
           <header class="card-head"><h4>AWS Certified Cloud Practitioner</h4><span class="chip">Juillet 2026</span></header>
           <p>Amazon Web Services</p>
-          <ul class="tags"><li>Infonuagique</li><li>Services principaux</li><li>Sécurité</li><li>Architecture</li></ul>
+          <ul class="tags"><li>Infonuagique</li><li>Services principaux</li><li>Sécurité</li></ul>
         </article>
         <article class="card">
           <header class="card-head"><h4>Qiskit Global Summer School 2026</h4><span class="chip">Juillet 2026</span></header>
           <p>IBM Quantum</p>
-          <ul class="tags"><li>Algorithmes quantiques</li><li>Circuits</li><li>Simulation numérique</li><li>Python</li></ul>
+          <ul class="tags"><li>Algorithmes quantiques</li><li>Circuits</li><li>Simulation</li><li>Python</li></ul>
         </article>
       </div>
     </section>
@@ -282,21 +273,21 @@
         <h3>Opérateur de production — MANN+HUMMEL</h3>
         <p class="meta">Trois-Rivières, QC <span aria-hidden="true">·</span> Mai – août 2025</p>
         <ul><li>Assemblage selon les spécifications client</li><li>Inspection qualité</li><li>Préparation des expéditions</li></ul>
-        <p class="perk">Rigueur et souci du détail — les mêmes réflexes que pour les tests et la qualité logicielle.</p>
+        <p class="perk">Rigueur et souci du détail : les mêmes réflexes que pour les tests en logiciel.</p>
       </article>
     </section>
 
     <section id="q-edu">
       <h2>Formation</h2>
       <article class="entry">
-        <h3>Baccalauréat en informatique (régime coopératif)</h3>
-        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> Août 2025 – Déc. 2028</p>
-        <p>Excellent rendement scolaire.</p>
+        <h3>Baccalauréat en informatique (coop)</h3>
+        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> août 2025 – déc. 2028</p>
+        <p>Excellent rendement scolaire</p>
       </article>
       <article class="entry">
         <h3>Certificat préparatoire en génie, sciences et santé</h3>
-        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> Août 2024 – Avril 2025</p>
-        <p>Mathématiques et physique.</p>
+        <p class="meta">Université de Sherbrooke <span aria-hidden="true">·</span> 2024 – 2025</p>
+        
       </article>
     </section>
 

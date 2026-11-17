@@ -1,5 +1,5 @@
-// Régénère la version CV statique de index.html (bloc QUICK:START … QUICK:END)
-// à partir de js/i18n.js. Utile pour le SEO et le mode sans JavaScript.
+// Régénère la vue rapide statique de index.html (bloc QUICK:START … QUICK:END)
+// à partir de js/content.js. Utile pour le SEO et le mode sans JavaScript.
 //
 //   node tools/build-static.mjs
 //
@@ -20,4 +20,4 @@ if (i < 0 || j < 0) throw new Error('Marqueurs QUICK:START / QUICK:END introuvab
 
 const out = html.slice(0, i + A.length) + '\n' + quickHTML('fr').replace(/^\s*\n/, '').trimEnd() + '\n' + html.slice(j);
 fs.writeFileSync(file, out);
-console.log('index.html : version CV statique régénérée (fr).');
+console.log('index.html : vue rapide statique régénérée (fr).');

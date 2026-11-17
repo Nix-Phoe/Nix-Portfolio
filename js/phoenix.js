@@ -1,4 +1,6 @@
-// Nix le phénix bleu : sprite 48×48 dessiné en code + animations.
+// Nix le phénix bleu : sprite 48×48 dessiné en code, animations et trajectoires.
+// Sa position suit une courbe de Bézier par zone, pilotée par la progression du
+// scroll ; son animation dépend de la vitesse du scroll (vol, repos, parole).
 // La grille ci-dessous est la silhouette de l'avatar, 5 teintes de bleu.
 // Les frames (battement d'ailes, bec, tête penchée, queue) sont générées
 // à la volée par cisaillement de colonnes, puis mises en cache.
@@ -129,13 +131,57 @@ function frame(k, mouth, tilt, sway, eye) {
 }
 
 const ease = p => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const mix = (a, b, t) => a + (b - a) * t;
+
+// ---------- Trajectoires ----------
+// Un point = [progression, x (fraction de la largeur), y (fraction de la ligne de sol),
+//             décalage y en pixels de jeu, décalage x en pixels de jeu].
+// Entre deux points, Nix suit une courbe de Bézier cubique légèrement bombée.
+// « wide » = grand écran (panneaux sur le côté), « narrow » = mobile (panneaux en haut).
+const PATHS = {
+  wide: {
+    title: [[0, 0.5, 1, -16], [0.35, 0.5, 1, -16], [1, 0.5, 1, -46]],
+    nest: [[0, 0.3, 0.5], [0.07, 0.25, 1, -28], [0.5, 0.25, 1, -28], [0.58, 0.36, 1, -34], [0.93, 0.36, 1, -34], [1, 0.4, 0.55]],
+    world: [[0, 1, 0.613, 0, 54], [0.04, 0.86, 1, -30], [1, 0.86, 1, -30]],
+    summit: [[0, 0.86, 0.5], [0.08, 0.9, 1, -40], [0.6, 0.9, 1, -40], [0.68, 0.86, 1, -30], [0.95, 0.86, 1, -30], [1, 0.8, 0.55]],
+    save: [[0, 0.7, 0.5], [0.2, 0.66, 1, -30], [0.78, 0.66, 1, -30], [0.93, 0.64, 1, -14], [1, 0.64, 1, -14]],
+  },
+  narrow: {
+    title: [[0, 0.5, 1, -16], [0.35, 0.5, 1, -16], [1, 0.5, 1, -46]],
+    nest: [[0, 0.5, 0.55], [0.07, 0.5, 1, -24], [0.93, 0.5, 1, -24], [1, 0.4, 0.6]],
+    world: [[0, 1, 0.613, 0, 54], [0.035, 0.5, 1, -24], [1, 0.5, 1, -24]],
+    summit: [[0, 0.5, 0.55], [0.08, 0.5, 1, -24], [0.95, 0.5, 1, -24], [1, 0.5, 0.6]],
+    save: [[0, 0.5, 0.55], [0.2, 0.28, 1, -24], [0.78, 0.28, 1, -24], [0.93, 0.26, 1, -14], [1, 0.26, 1, -14]],
+  },
+};
+const HOME = { wide: { title: -1, nest: 1, world: -1, summit: -1, save: -1 }, narrow: {} };
+
+/** Position de Nix dans la zone `zone` à la progression p. s = { W, gy } (taille de la scène). */
+export function pathPoint(zone, p, s) {
+  const pts = (s.W >= 250 ? PATHS.wide : PATHS.narrow)[zone] || PATHS.wide.title;
+  const at = k => ({ x: s.W * k[1] + (k[4] || 0), y: s.gy * k[2] + (k[3] || 0) });
+  let i = 0;
+  while (i < pts.length - 2 && p > pts[i + 1][0]) i++;
+  const A = at(pts[i]), B = at(pts[i + 1]), span = pts[i + 1][0] - pts[i][0];
+  const d = Math.hypot(B.x - A.x, B.y - A.y);
+  if (d < 0.5 || span <= 0) return A;
+  const u = ease(Math.max(0, Math.min(1, (p - pts[i][0]) / span))), v = 1 - u, arc = Math.min(16, d * 0.22);
+  const c1x = mix(A.x, B.x, 0.3), c1y = mix(A.y, B.y, 0.3) - arc, c2x = mix(A.x, B.x, 0.7), c2y = mix(A.y, B.y, 0.7) - arc;
+  return {
+    x: v * v * v * A.x + 3 * v * v * u * c1x + 3 * v * u * u * c2x + u * u * u * B.x,
+    y: v * v * v * A.y + 3 * v * v * u * c1y + 3 * v * u * u * c2y + u * u * u * B.y,
+  };
+}
+
+/** Sens du regard au repos dans une zone (1 = vers la droite). */
+export function homeFace(zone, s) { return (s.W >= 250 ? HOME.wide[zone] : HOME.narrow[zone]) || -1; }
+
 const FLAME = ['#2f5fd0', '#3f7bff', '#6aa2ff', '#d6ecff'];
 
 export class Nix {
   constructor() {
     this.x = 0; this.y = 0;
     this.face = 1;            // 1 = regarde vers la droite
-    this.homeFace = 1;
     this.visible = true;
     this.sleeping = false;
     this.speaking = false;
@@ -143,27 +189,29 @@ export class Nix {
     this.rebirth = 0;         // 0 = normal, 1 = boule de flammes
     this.mood = null;         // 'excited' | 'think' | 'cool'
     this.moodT = 0;
-    this.tw = null;
+    this.flyT = 0;
     this.parts = [];
     this.emberT = 0;
     this.low = false;         // mouvement réduit
   }
 
-  place(x, y) { this._endTween(); this.x = x; this.y = y; }
-
-  _endTween() {
-    if (this.tw) { const r = this.tw.res; this.tw = null; this.flying = false; r(); }
-  }
-
-  /** Vole jusqu'à (x, y). Renvoie une promesse résolue à l'arrivée. */
-  moveTo(x, y, dur = 0.6, arc = 0) {
-    this._endTween();
-    if (this.low) dur = Math.min(dur, 0.25);
-    return new Promise(res => {
-      this.tw = { x0: this.x, y0: this.y, x1: x, y1: y, t: 0, dur, arc, res };
-      this.flying = Math.hypot(x - this.x, y - this.y) > 12;
-      if (Math.abs(x - this.x) > 6) this.face = x > this.x ? 1 : -1;
-    });
+  /**
+   * Suit la cible donnée par le scroll. tg = { x, y, fly?, direct?, face?, home?, heading? }
+   * vel = vitesse du scroll (écrans par seconde, signée).
+   */
+  steer(tg, dt, vel = 0) {
+    const k = tg.direct ? 1 : 1 - Math.pow(1 - 0.22, dt * 60);
+    const nx = this.x + (tg.x - this.x) * k, ny = this.y + (tg.y - this.y) * k;
+    const speed = dt > 0 ? Math.hypot(nx - this.x, ny - this.y) / dt : 0;       // pixels de jeu par seconde
+    const gap = tg.x - this.x;
+    this.x = nx; this.y = ny;
+    // scroll rapide → vol (battements rapides + traînée) ; arrêt → repos
+    if (tg.fly || Math.abs(vel) > 0.2 || speed > 30) this.flyT = 0.25; else this.flyT = Math.max(0, this.flyT - dt);
+    this.flying = !this.sleeping && this.flyT > 0;
+    if (tg.face) this.face = tg.face;
+    else if (Math.abs(gap) > 3) this.face = gap > 0 ? 1 : -1;
+    else if (tg.heading && this.flying && Math.abs(vel) > 0.2) this.face = vel > 0 ? 1 : -1;
+    else if (tg.home) this.face = tg.home;
   }
 
   /** excited | think | cool (cool reste jusqu'à clearMood) */
@@ -183,14 +231,6 @@ export class Nix {
   }
 
   update(dt, t) {
-    if (this.tw) {
-      const w = this.tw;
-      w.t += dt;
-      const p = Math.min(1, w.t / w.dur), e = ease(p);
-      this.x = w.x0 + (w.x1 - w.x0) * e;
-      this.y = w.y0 + (w.y1 - w.y0) * e - Math.sin(p * Math.PI) * w.arc;
-      if (p >= 1) { this.face = this.homeFace; this._endTween(); }
-    }
     if (this.mood) {
       this.moodT += dt;
       if (this.mood === 'excited' && this.moodT > 1.1) this.mood = null;
@@ -199,7 +239,7 @@ export class Nix {
     const n = this.low ? 0.35 : 1;
     if (this.visible) {
       if (this.flying) {
-        for (let i = 0; i < 3 * n; i++) {
+        for (let i = 0; i < (this.low ? 0 : 3); i++) {       // mouvement réduit : pas de traînée
           this.emit(this.x - this.face * (6 + Math.random() * 8), this.y + 6 + Math.random() * 12,
             -this.face * (20 + Math.random() * 40), (Math.random() - 0.5) * 20, 0.35 + Math.random() * 0.45);
         }

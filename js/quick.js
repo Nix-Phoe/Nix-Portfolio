@@ -1,8 +1,8 @@
-// Mode CV rapide : même contenu que le jeu, en HTML sémantique classique.
+// Vue rapide : même contenu que le jeu, en HTML sémantique classique, sans dialogue ni animation.
 // Fonction pure (aucun accès au DOM) : elle sert aussi à générer la version
 // statique de index.html (tools/build-static.mjs) pour le SEO et le mode sans JS.
 
-import { UI, PROFILE, CONTACT, EDUCATION, SKILLS, PROJECTS, CERTS, JOBS, ZONES, L } from './i18n.js';
+import { UI, PROFILE, CONTACT, EDUCATION, SKILLS, DISTRICTS, PROJECTS, CERTS, JOBS, L } from './content.js';
 
 export const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 
@@ -11,22 +11,52 @@ export function quickHTML(lang) {
   const u = k => t(UI[k]);
   const tags = list => `<ul class="tags">${list.map(x => `<li>${t(x)}</li>`).join('')}</ul>`;
 
+  const links = p => [
+    p.live ? `<a class="card-link" href="${esc(p.live)}" target="_blank" rel="noopener">${u('tryIt')} <span aria-hidden="true">↗</span></a>` : '',
+    p.url ? `<a class="card-link" href="${esc(p.url)}" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>` : `<span class="chip">${u('school')}</span>`,
+  ].join('');
+
   const card = p => `
         <article class="card">
           <header class="card-head">
             <h4>${t(p.name)}</h4>
-            ${p.url
-    ? `<a class="card-link" href="${esc(p.url)}" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>`
-    : `<span class="chip">${u('school')}</span>`}
+            <span class="card-links">${links(p)}</span>
           </header>
-          <p>${t(p.desc)}</p>
+          <p>${t(p.desc || p.pitch)}</p>
           ${tags(p.tags)}
         </article>`;
 
-  const groups = ZONES.filter(z => z.kind === 'projects').map(z => {
-    const ps = PROJECTS.filter(p => p.zone === z.id);
+  const star = PROJECTS.find(p => p.featured);
+  const featured = star ? `
+    <section id="q-featured">
+      <h2>${u('qFeatured')}</h2>
+      <article class="card card-star">
+        <header class="card-head">
+          <h3>${t(star.name)} <small>v${esc(star.version || '')}</small></h3>
+          <span class="card-links">${links(star)}</span>
+        </header>
+        <p>${t(star.pitch)}</p>
+        <div class="star-cols">
+          <div>
+            <h4>${u('aiTitle')}</h4>
+            <ul>${(star.ai || []).map(a => `<li><strong>${t(a.name)}</strong> : ${t(a.text)}</li>`).join('')}</ul>
+            <p class="meta">${t(star.aiNote)}</p>
+          </div>
+          <div>
+            <h4>${u('editorTitle')}</h4>
+            <ul>${(L(star.editor, lang) || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+          </div>
+        </div>
+        <h4>${u('techTitle')}</h4>
+        <p>${t(star.tech)}</p>
+        ${tags(star.tags)}
+      </article>
+    </section>` : '';
+
+  const groups = DISTRICTS.map(d => {
+    const ps = PROJECTS.filter(p => p.district === d.id && !p.featured);
     return ps.length ? `
-      <h3 class="${z.id === 'cpp' ? 'star' : ''}">${t(z.group || z.name)}</h3>
+      <h3>${t(d.name)}</h3>
       <div class="cards">${ps.map(card).join('')}
       </div>` : '';
   }).join('');
@@ -54,6 +84,8 @@ export function quickHTML(lang) {
         <dd>${PROFILE.languages.map(l => `${t(l.name)} <span class="stars">${t(l.stars)}</span>`).join(' <span aria-hidden="true">·</span> ')}</dd>
       </dl>
     </section>
+
+${featured}
 
     <section id="q-projects">
       <h2>${u('qProjects')}</h2>${groups}
@@ -95,7 +127,7 @@ export function quickHTML(lang) {
       <article class="entry">
         <h3>${t(e.title)}</h3>
         <p class="meta">${esc(e.place)} <span aria-hidden="true">·</span> ${t(e.dates)}</p>
-        <p>${t(e.note)}</p>
+        ${e.note ? `<p>${t(e.note)}</p>` : ''}
       </article>`).join('')}
     </section>
 

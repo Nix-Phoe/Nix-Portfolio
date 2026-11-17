@@ -1,4 +1,4 @@
-// Zone 5 — « Le Laboratoire des Données » : usine aéro, salle de contrôle, stade.
+// Zone 2, quartier Data — « Le Laboratoire » : usine aéro, salle de contrôle, stade.
 import { R, bands, layer, glow, disc, ring, hash, stars, text, line, cloud, beam, motes } from './kit.js';
 
 // ---------- Usine aéronautique : tapis roulant + scanner laser ----------

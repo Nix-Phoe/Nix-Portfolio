@@ -1,4 +1,4 @@
-// Zone 4 — « Les Terres du C++ » : un mini-biome par projet.
+// Zone 2, quartier C++ — « Les Terres du C++ » : un mini-biome par projet.
 import { R, bands, ridge, layer, glow, disc, ring, hash, stars, text, line, cloud, beam, motes } from './kit.js';
 
 // ---------- Station radar dans le désert, la nuit ----------

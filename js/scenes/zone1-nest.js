@@ -1,18 +1,19 @@
-// Zone 1 — « Le Nid » : falaise au lever du soleil, nuages qui défilent.
+// Zone 1 — « Le Nid » : falaise au lever du soleil. Le soleil monte et les nuages
+// défilent avec le scroll (s.p = progression dans la zone).
 import { R, bands, ridge, layer, glow, disc, cloud, hash, motes } from './kit.js';
 
 export const nest = {
   draw(s) {
-    const { W, H, gy, t, px } = s;
+    const { W, H, gy, t, px } = s, p = s.p || 0;
     layer('sky', () => bands(['#2a2868', '#4b3a8a', '#8a4f93', '#cf6f86', '#f29a72', '#ffc98a', '#ffe7b0'], 0, gy + 8));
     // soleil levant
-    const sx = Math.round(W * 0.7 + px * 2), sy = gy + 1;
+    const sx = Math.round(W * 0.7 + px * 2), sy = gy + 6 - Math.round(p * Math.min(46, gy * 0.42));
     glow(sx, sy, 70, '255,190,110', 0.55);
     disc(sx, sy, 17, '#ffe9a8'); disc(sx, sy, 14, '#fff6d6');
     // nuages sur trois profondeurs
     for (let i = 0; i < 7; i++) {
       const d = i % 3, span = W + 90;
-      const x = ((hash(i, 2) * span + t * (2 + d * 2.5)) % span) - 45 + px * (2 + d * 3);
+      const x = ((hash(i, 2) * span + t * (2 + d * 2.5) + p * W * (0.5 + d * 0.45)) % span) - 45 + px * (2 + d * 3);
       cloud(x, H * 0.08 + hash(i, 5) * gy * 0.55, 20 + hash(i, 8) * 26, d === 2 ? '#fff1e0' : d ? '#ffd9c8' : '#e9a9b0', d === 2 ? '#f2b8a8' : '#c9849a');
     }
     layer('mount', () => { ridge(4, gy + 6, 26, '#7a5596', 64); ridge(8, gy + 8, 14, '#5d4488', 30); }, px * 3);
